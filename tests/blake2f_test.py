@@ -65,7 +65,7 @@ async def test(starknet):
         0x79217E13,
         0x19CDE05B,
     ]
-    m = [0x0000000000636261] + [0 for _ in range(15)]
+    m = [0x6162630000000000] + [0 for _ in range(15)]
     t = 0x0300000000000000
     f = 1
 
@@ -79,3 +79,5 @@ async def test(starknet):
     LOGGER.info(
         f"> Simulation of blake2f took execution_resources = {ret.call_info.execution_resources}"
     )
+
+    LOGGER.info(ret.result.output)
