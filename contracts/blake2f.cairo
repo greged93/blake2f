@@ -8,14 +8,10 @@ from starkware.cairo.common.math import unsigned_div_rem
 from starkware.cairo.common.registers import get_fp_and_pc, get_label_location
 from starkware.cairo.common.math_cmp import is_nn, is_le
 
-const SHIFTS = 1;
-
-@external
+@view
 func blake2f{
     bitwise_ptr: BitwiseBuiltin*, syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
-}(rounds: felt, h_len: felt, h: felt*, m_len: felt, m: felt*, t: felt, f: felt) -> (
-    output_len: felt, output: felt*
-) {
+}(rounds: felt, h_len: felt, h: felt*, m_len: felt, m: felt*, t: felt, f: felt) -> (output_len: felt, output:felt*) {
     alloc_locals;
     let (__fp__, _) = get_fp_and_pc();
 
@@ -52,33 +48,34 @@ func blake2f{
         state14 = 0x1f83d9ab;
     }
 
-    let (local initial_state) = alloc();
+    local initial_state = h[0];
+    local initial_state_ = h[1];
+    local initial_state_= h[2];
+    local initial_state_ = h[3];
+    local initial_state_ = h[4];
+    local initial_state_ = h[5];
+    local initial_state_ = h[6];
+    local initial_state_ = h[7];
+    local initial_state_ = 0x6a09e667;
+    local initial_state_ = 0xbb67ae85;
+    local initial_state_ = 0x3c6ef372;
+    local initial_state_ = 0xa54ff53a;
+    local initial_state_ = state12;
+    local initial_state_ = state13;
+    local initial_state_ = state14;
+    local initial_state_ = 0x5be0cd19;
 
-    assert [initial_state] = h[0];
-    assert [initial_state + 1] = h[1];
-    assert [initial_state + 2] = h[2];
-    assert [initial_state + 3] = h[3];
-    assert [initial_state + 4] = h[4];
-    assert [initial_state + 5] = h[5];
-    assert [initial_state + 6] = h[6];
-    assert [initial_state + 7] = h[7];
-    assert [initial_state + 8] = 0x6a09e667;
-    assert [initial_state + 9] = 0xbb67ae85;
-    assert [initial_state + 10] = 0x3c6ef372;
-    assert [initial_state + 11] = 0xa54ff53a;
-    assert [initial_state + 12] = state12;
-    assert [initial_state + 13] = state13;
-    assert [initial_state + 14] = state14;
-    assert [initial_state + 15] = 0x5be0cd19;
+    let state = &initial_state;
 
-    let state = initial_state;
-
-    blake_rounds(rounds, 0, state, m, sigma);
+    let (state) = blake_rounds(rounds, 0, state, m, sigma);
 
     tempvar old_h = h;
     tempvar last_state = state;
     tempvar new_h = output;
     tempvar bitwise_ptr = bitwise_ptr;
+    tempvar range_check_ptr = range_check_ptr;
+    tempvar pedersen_ptr = pedersen_ptr;
+    tempvar syscall_ptr = syscall_ptr;
     tempvar n = 8;
 
     loop:
@@ -87,13 +84,16 @@ func blake2f{
     assert bitwise_ptr[1].x = bitwise_ptr[0].x_xor_y;
     assert bitwise_ptr[1].y = last_state[8];
     assert new_h[0] = bitwise_ptr[1].x_xor_y;
-
     tempvar old_h = old_h + 1;
     tempvar last_state = last_state + 1;
     tempvar new_h = new_h + 1;
     tempvar bitwise_ptr = bitwise_ptr + 2 * BitwiseBuiltin.SIZE;
+    tempvar range_check_ptr = range_check_ptr;
+    tempvar pedersen_ptr = pedersen_ptr;
+    tempvar syscall_ptr = syscall_ptr;
     tempvar n = n - 1;
     jmp loop if n != 0;
+
 
     return (output_len=8, output=output);
 
