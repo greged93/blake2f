@@ -28,13 +28,13 @@ func blake2f{
     local sigma: felt* = cast(sigma_address, felt*);
 
     // Compute state[12].
-    assert bitwise_ptr[0].x = 0x510e527f;
+    assert bitwise_ptr[0].x = 0x510e527fade682d1;
     assert bitwise_ptr[0].y = t0;
     let state12 = bitwise_ptr[0].x_xor_y;
     let bitwise_ptr = bitwise_ptr + BitwiseBuiltin.SIZE;
 
     // Compute state[13].
-    assert bitwise_ptr[0].x = 0x9b05688c;
+    assert bitwise_ptr[0].x = 0x9b05688c2b3e6c1f;
     assert bitwise_ptr[0].y = t1;
     let state13 = bitwise_ptr[0].x_xor_y;
     let bitwise_ptr = bitwise_ptr + BitwiseBuiltin.SIZE;
@@ -42,10 +42,10 @@ func blake2f{
     // Compute state[14].
     local state14;
     if (f == 1) {
-        // 0x1f83d9ab ^ 0xffffffffffffffff
-        state14 = 0xffffffffe07c2654;
+        // 0x1f83d9abfb41bd6b ^ 0xffffffffffffffff
+        state14 = 0xe07c265404be4294;
     } else {
-        state14 = 0x1f83d9ab;
+        state14 = 0x1f83d9abfb41bd6b;
     }
 
     local initial_state = h[0];
@@ -56,14 +56,14 @@ func blake2f{
     local initial_state_ = h[5];
     local initial_state_ = h[6];
     local initial_state_ = h[7];
-    local initial_state_ = 0x6a09e667;
-    local initial_state_ = 0xbb67ae85;
-    local initial_state_ = 0x3c6ef372;
-    local initial_state_ = 0xa54ff53a;
+    local initial_state_ = 0x6a09e667f3bcc908;
+    local initial_state_ = 0xbb67ae8584caa73b;
+    local initial_state_ = 0x3c6ef372fe94f82b;
+    local initial_state_ = 0xa54ff53a5f1d36f1;
     local initial_state_ = state12;
     local initial_state_ = state13;
     local initial_state_ = state14;
-    local initial_state_ = 0x5be0cd19;
+    local initial_state_ = 0x5be0cd19137e2179;
 
     let state = &initial_state;
 

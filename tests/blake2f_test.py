@@ -35,38 +35,20 @@ async def test(starknet):
     )
     LOGGER.info(f"> Deployed blake2f.cairo.")
 
-    IV = [
-        0x6A09E667,
-        0xBB67AE85,
-        0x3C6EF372,
-        0xA54FF53A,
-        0x510E527F,
-        0x9B05688C,
-        0x1F83D9AB,
-        0x5BE0CD19,
-    ]
 
     rounds = 12
     h = [
-        0x48C9BDF2,
-        0x67E6096A,
-        0x3BA7CA84,
-        0x85AE67BB,
-        0x2BF894FE,
-        0x72F36E3C,
-        0xF1361D5F,
-        0x3AF54FA5,
-        0xD182E6AD,
-        0x7F520E51,
-        0x1F6C3E2B,
-        0x8C68059B,
-        0x6BBD41FB,
-        0xABD9831F,
-        0x79217E13,
-        0x19CDE05B,
+        0x6a09e667f2bdc948,
+        0xbb67ae8584caa73b,
+        0x3c6ef372fe94f82b,
+        0xa54ff53a5f1d36f1,
+        0x510e527fade682d1,
+        0x9b05688c2b3e6c1f,
+        0x1f83d9abfb41bd6b,
+        0x5be0cd19137e2179,
     ]
-    m = [0x6162630000000000] + [0 for _ in range(15)]
-    t = 0x0300000000000000
+    m = [0x0000000000636261] + [0 for _ in range(15)]
+    t = 0x0000000000000003
     f = 1
 
     LOGGER.info(rounds)
