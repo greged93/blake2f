@@ -3,7 +3,6 @@
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.alloc import alloc
-from starkware.cairo.common.cairo_blake2s.packed_blake2s import blake_round
 from starkware.cairo.common.math import unsigned_div_rem
 from starkware.cairo.common.registers import get_fp_and_pc, get_label_location
 from starkware.cairo.common.math_cmp import is_nn, is_le
@@ -271,4 +270,182 @@ func blake_rounds{
     let (h_new) = blake_round(h, m, sigma + r * 16);
 
     return blake_rounds(rounds - 1, i + 1, h_new, m, sigma);
+}
+
+func blake_round{
+    bitwise_ptr: BitwiseBuiltin*, syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
+}(state: felt*, message: felt*, sigma: felt*) -> (new_state: felt*) {
+    alloc_locals;
+    let state0 = state[0];
+    let state1 = state[1];
+    let state2 = state[2];
+    let state3 = state[3];
+    let state4 = state[4];
+    let state5 = state[5];
+    let state6 = state[6];
+    let state7 = state[7];
+    let state8 = state[8];
+    let state9 = state[9];
+    let state10 = state[10];
+    let state11 = state[11];
+    let state12 = state[12];
+    let state13 = state[13];
+    let state14 = state[14];
+    let state15 = state[15];
+
+    let (state0, state4, state8, state12) = mix_one(
+        state0, state4, state8, state12, message[sigma[0]]
+    );
+    let (state1, state5, state9, state13) = mix_one(
+        state1, state5, state9, state13, message[sigma[1]]
+    );
+    let (state2, state6, state10, state14) = mix_one(
+        state2, state6, state10, state14, message[sigma[2]]
+    );
+    let (state3, state7, state11, state15) = mix_one(
+        state3, state7, state11, state15, message[sigma[3]]
+    );
+
+    let (state0, state4, state8, state12) = mix_two(
+        state0, state4, state8, state12, message[sigma[4]]
+    );
+    let (state1, state5, state9, state13) = mix_two(
+        state1, state5, state9, state13, message[sigma[5]]
+    );
+    let (state2, state6, state10, state14) = mix_two(
+        state2, state6, state10, state14, message[sigma[6]]
+    );
+    let (state3, state7, state11, state15) = mix_two(
+        state3, state7, state11, state15, message[sigma[7]]
+    );
+
+    let (state0, state5, state10, state15) = mix_one(
+        state0, state5, state10, state15, message[sigma[8]]
+    );
+    let (state1, state6, state11, state12) = mix_one(
+        state1, state6, state11, state12, message[sigma[9]]
+    );
+    let (state2, state7, state8, state13) = mix_one(
+        state2, state7, state8, state13, message[sigma[10]]
+    );
+    let (state3, state4, state9, state14) = mix_one(
+        state3, state4, state9, state14, message[sigma[11]]
+    );
+
+    let (state0, state5, state10, state15) = mix_two(
+        state0, state5, state10, state15, message[sigma[12]]
+    );
+    let (state1, state6, state11, state12) = mix_two(
+        state1, state6, state11, state12, message[sigma[13]]
+    );
+    let (state2, state7, state8, state13) = mix_two(
+        state2, state7, state8, state13, message[sigma[14]]
+    );
+    let (state3, state4, state9, state14) = mix_two(
+        state3, state4, state9, state14, message[sigma[15]]
+    );
+
+    let (new_state: felt*) = alloc();
+    assert new_state[0] = state0;
+    assert new_state[1] = state1;
+    assert new_state[2] = state2;
+    assert new_state[3] = state3;
+    assert new_state[4] = state4;
+    assert new_state[5] = state5;
+    assert new_state[6] = state6;
+    assert new_state[7] = state7;
+    assert new_state[8] = state8;
+    assert new_state[9] = state9;
+    assert new_state[10] = state10;
+    assert new_state[11] = state11;
+    assert new_state[12] = state12;
+    assert new_state[13] = state13;
+    assert new_state[14] = state14;
+    assert new_state[15] = state15;
+
+    return (new_state=new_state);
+}
+
+func mix_one{
+    bitwise_ptr: BitwiseBuiltin*, syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
+}(a: felt, b: felt, c: felt, d: felt, m: felt) -> (a: felt, b: felt, c: felt, d: felt) {
+    alloc_locals;
+
+    // Defining the following constant as local variables saves some instructions.
+    local mask64ones = (2 ** 64 - 1);
+
+    // a = (a + b + m) % 2**64
+    assert bitwise_ptr[0].x = a + b + m;
+    assert bitwise_ptr[0].y = mask64ones;
+    tempvar a = bitwise_ptr[0].x_and_y;
+    let bitwise_ptr = bitwise_ptr + BitwiseBuiltin.SIZE;
+
+    // d = right_rot((d ^ a), 32).
+    assert bitwise_ptr[0].x = a;
+    assert bitwise_ptr[0].y = d;
+    tempvar a_xor_d = bitwise_ptr[0].x_xor_y;
+    assert bitwise_ptr[1].x = a_xor_d;
+    assert bitwise_ptr[1].y = (2 ** 64 - 2 ** 32);
+    tempvar d = (
+        (2 ** (64 - 32)) * a_xor_d + (1 / 2 ** 32 - 2 ** (64 - 32)) * bitwise_ptr[1].x_and_y);
+    let bitwise_ptr = bitwise_ptr + 2 * BitwiseBuiltin.SIZE;
+
+    // c = (c + d) % 2**64
+    assert bitwise_ptr[0].x = c + d;
+    assert bitwise_ptr[0].y = mask64ones;
+    tempvar c = bitwise_ptr[0].x_and_y;
+    let bitwise_ptr = bitwise_ptr + BitwiseBuiltin.SIZE;
+
+    // b = right_rot((b ^ c), 24).
+    assert bitwise_ptr[0].x = b;
+    assert bitwise_ptr[0].y = c;
+    tempvar b_xor_c = bitwise_ptr[0].x_xor_y;
+    assert bitwise_ptr[1].x = b_xor_c;
+    assert bitwise_ptr[1].y = (2 ** 64 - 2 ** 24);
+    tempvar b = (
+        (2 ** (64 - 24)) * b_xor_c + (1 / 2 ** 24 - 2 ** (64 - 24)) * bitwise_ptr[1].x_and_y);
+    let bitwise_ptr = bitwise_ptr + 2 * BitwiseBuiltin.SIZE;
+
+    return (a, b, c, d);
+}
+
+func mix_two{
+    bitwise_ptr: BitwiseBuiltin*, syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
+}(a: felt, b: felt, c: felt, d: felt, m: felt) -> (a: felt, b: felt, c: felt, d: felt) {
+    alloc_locals;
+
+    // Defining the following constant as local variables saves some instructions.
+    local mask64ones = (2 ** 64 - 1);
+
+    // a = (a + b + m) % 2**64
+    assert bitwise_ptr[0].x = a + b + m;
+    assert bitwise_ptr[0].y = mask64ones;
+    tempvar a = bitwise_ptr[0].x_and_y;
+    let bitwise_ptr = bitwise_ptr + BitwiseBuiltin.SIZE;
+
+    // d = right_rot((d ^ a), 16).
+    assert bitwise_ptr[0].x = d;
+    assert bitwise_ptr[0].y = a;
+    tempvar d_xor_a = bitwise_ptr[0].x_xor_y;
+    assert bitwise_ptr[1].x = d_xor_a;
+    assert bitwise_ptr[1].y = (2 ** 64 - 2 ** 16);
+    tempvar d = (2 ** (64 - 16)) * d_xor_a + (1 / 2 ** 16 - 2 ** (64 - 16)) * bitwise_ptr[1].x_and_y;
+    let bitwise_ptr = bitwise_ptr + 2 * BitwiseBuiltin.SIZE;
+
+    // c = (c + d) % 2**64
+    assert bitwise_ptr[0].x = c + d;
+    assert bitwise_ptr[0].y = mask64ones;
+    tempvar c = bitwise_ptr[0].x_and_y;
+    let bitwise_ptr = bitwise_ptr + BitwiseBuiltin.SIZE;
+
+    // b = right_rot((b ^ c), 63).
+    assert bitwise_ptr[0].x = b;
+    assert bitwise_ptr[0].y = c;
+    tempvar b_xor_c = bitwise_ptr[0].x_xor_y;
+    assert bitwise_ptr[1].x = b_xor_c;
+    assert bitwise_ptr[1].y = (2 ** 64 - 2 ** 63);
+    tempvar b = (2 ** (64 - 63)) * b_xor_c + (1 / 2 ** 63 - 2 ** (64 - 63)) * bitwise_ptr[1].x_and_y;
+    let bitwise_ptr = bitwise_ptr + 2 * BitwiseBuiltin.SIZE;
+
+    return (a, b, c, d);
 }
