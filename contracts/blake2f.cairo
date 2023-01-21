@@ -14,7 +14,6 @@ func blake2f{
     output_len: felt, output: felt*
 ) {
     alloc_locals;
-    let (__fp__, _) = get_fp_and_pc();
 
     // Check the flag
     let is_positive_flag = is_nn(f);
@@ -49,26 +48,25 @@ func blake2f{
         state14 = 0x1f83d9abfb41bd6b;
     }
 
-    local initial_state = h[0];
-    local initial_state_ = h[1];
-    local initial_state_ = h[2];
-    local initial_state_ = h[3];
-    local initial_state_ = h[4];
-    local initial_state_ = h[5];
-    local initial_state_ = h[6];
-    local initial_state_ = h[7];
-    local initial_state_ = 0x6a09e667f3bcc908;
-    local initial_state_ = 0xbb67ae8584caa73b;
-    local initial_state_ = 0x3c6ef372fe94f82b;
-    local initial_state_ = 0xa54ff53a5f1d36f1;
-    local initial_state_ = state12;
-    local initial_state_ = state13;
-    local initial_state_ = state14;
-    local initial_state_ = 0x5be0cd19137e2179;
+    let (local initial_state: felt*) = alloc();
+    assert initial_state[0] = h[0];
+    assert initial_state[1] = h[1];
+    assert initial_state[2] = h[2];
+    assert initial_state[3] = h[3];
+    assert initial_state[4] = h[4];
+    assert initial_state[5] = h[5];
+    assert initial_state[6] = h[6];
+    assert initial_state[7] = h[7];
+    assert initial_state[8] = 0x6a09e667f3bcc908;
+    assert initial_state[9] = 0xbb67ae8584caa73b;
+    assert initial_state[10] = 0x3c6ef372fe94f82b;
+    assert initial_state[11] = 0xa54ff53a5f1d36f1;
+    assert initial_state[12] = state12;
+    assert initial_state[13] = state13;
+    assert initial_state[14] = state14;
+    assert initial_state[15] = 0x5be0cd19137e2179;
 
-    let state = &initial_state;
-
-    let (state) = blake_rounds(rounds, 0, state, m, sigma);
+    let (state) = blake_rounds(rounds, 0, initial_state, m, sigma);
 
     tempvar old_h = h;
     tempvar last_state = state;
@@ -276,34 +274,18 @@ func blake_round{
     bitwise_ptr: BitwiseBuiltin*, syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
 }(state: felt*, message: felt*, sigma: felt*) -> (new_state: felt*) {
     alloc_locals;
-    let state0 = state[0];
-    let state1 = state[1];
-    let state2 = state[2];
-    let state3 = state[3];
-    let state4 = state[4];
-    let state5 = state[5];
-    let state6 = state[6];
-    let state7 = state[7];
-    let state8 = state[8];
-    let state9 = state[9];
-    let state10 = state[10];
-    let state11 = state[11];
-    let state12 = state[12];
-    let state13 = state[13];
-    let state14 = state[14];
-    let state15 = state[15];
 
     let (state0, state4, state8, state12) = mix_one(
-        state0, state4, state8, state12, message[sigma[0]]
+        state[0], state[4], state[8], state[12], message[sigma[0]]
     );
     let (state1, state5, state9, state13) = mix_one(
-        state1, state5, state9, state13, message[sigma[1]]
+        state[1], state[5], state[9], state[13], message[sigma[1]]
     );
     let (state2, state6, state10, state14) = mix_one(
-        state2, state6, state10, state14, message[sigma[2]]
+        state[2], state[6], state[10], state[14], message[sigma[2]]
     );
     let (state3, state7, state11, state15) = mix_one(
-        state3, state7, state11, state15, message[sigma[3]]
+        state[3], state[7], state[11], state[15], message[sigma[3]]
     );
 
     let (state0, state4, state8, state12) = mix_two(
@@ -372,7 +354,8 @@ func mix_one{
     alloc_locals;
 
     // Defining the following constant as local variables saves some instructions.
-    local mask64ones = (2 ** 64 - 1);
+    // TODO move to namespace
+    const mask64ones = (2 ** 64 - 1);
 
     // a = (a + b + m) % 2**64
     assert bitwise_ptr[0].x = a + b + m;
@@ -415,7 +398,8 @@ func mix_two{
     alloc_locals;
 
     // Defining the following constant as local variables saves some instructions.
-    local mask64ones = (2 ** 64 - 1);
+    // TODO move to namespace
+    const mask64ones = (2 ** 64 - 1);
 
     // a = (a + b + m) % 2**64
     assert bitwise_ptr[0].x = a + b + m;
