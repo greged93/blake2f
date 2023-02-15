@@ -64,10 +64,9 @@ namespace PrecompileBlake2f {
 
         let t0 = Helpers.bytes_to_64_bits_little_felt(input + T_BYTES_OFFSET);
         let t1 = Helpers.bytes_to_64_bits_little_felt(input + T_BYTES_OFFSET + 8);
-        tempvar t = t0 + t1 * 2 ** 64;
 
         // Perform Blake2f compression
-        let (compressed) = Blake2.F(rounds, h, m, t, f);
+        let (compressed) = Blake2.F(rounds, h, m, t0, t1, f);
 
         let (output: felt*) = alloc();
         Helpers.split_word_little(compressed[0], WORD_BYTES_LEN, output);
@@ -98,12 +97,11 @@ namespace Blake2 {
         pedersen_ptr: HashBuiltin*,
         range_check_ptr,
         bitwise_ptr: BitwiseBuiltin*,
-    }(rounds: felt, h: felt*, m: felt*, t: felt, f: felt) -> (output: felt*) {
+    }(rounds: felt, h: felt*, m: felt*, t0: felt, t1: felt, f: felt) -> (output: felt*) {
         alloc_locals;
         let (__fp__, _) = get_fp_and_pc();
 
         let (local output) = alloc();
-        let (local t1, local t0) = unsigned_div_rem(t, 2 ** 64);
         let (sigma_address) = get_label_location(data);
         local sigma: felt* = cast(sigma_address, felt*);
 
@@ -523,9 +521,7 @@ namespace Blake2 {
         tempvar d_xor_a = bitwise_ptr[0].x_xor_y;
         assert bitwise_ptr[1].x = d_xor_a;
         assert bitwise_ptr[1].y = (2 ** 64 - 2 ** 16);
-        tempvar d = (2 ** (64 - 16)) * d_xor_a + (1 / 2 ** 16 - 2 ** (64 - 16)) * bitwise_ptr[
-            1
-        ].x_and_y;
+        tempvar d = (2 ** (64 - 16)) * d_xor_a + (1 / 2 ** 16 - 2 ** (64 - 16)) * bitwise_ptr[1].x_and_y;
         let bitwise_ptr = bitwise_ptr + 2 * BitwiseBuiltin.SIZE;
 
         // c = (c + d) % 2**64
@@ -537,9 +533,7 @@ namespace Blake2 {
         tempvar b_xor_c = bitwise_ptr[0].x_xor_y;
         assert bitwise_ptr[1].x = b_xor_c;
         assert bitwise_ptr[1].y = (2 ** 64 - 2 ** 63);
-        tempvar b = (2 ** (64 - 63)) * b_xor_c + (1 / 2 ** 63 - 2 ** (64 - 63)) * bitwise_ptr[
-            1
-        ].x_and_y;
+        tempvar b = (2 ** (64 - 63)) * b_xor_c + (1 / 2 ** 63 - 2 ** (64 - 63)) * bitwise_ptr[1].x_and_y;
         let bitwise_ptr = bitwise_ptr + 2 * BitwiseBuiltin.SIZE;
 
         return (a, b, c, d);
